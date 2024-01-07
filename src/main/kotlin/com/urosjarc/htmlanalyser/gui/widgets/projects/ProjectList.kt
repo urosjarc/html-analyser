@@ -1,10 +1,13 @@
 package com.urosjarc.htmlanalyser.gui.widgets.projects
 
+import com.urosjarc.htmlanalyser.app.project.HtmlRepo
 import com.urosjarc.htmlanalyser.app.project.Project
 import com.urosjarc.htmlanalyser.app.project.ProjectRepo
 import com.urosjarc.htmlanalyser.shared.startThread
 import javafx.fxml.FXML
-import javafx.scene.control.*
+import javafx.scene.control.Button
+import javafx.scene.control.ListView
+import javafx.scene.control.TextField
 import javafx.scene.input.MouseEvent
 import javafx.stage.DirectoryChooser
 import org.koin.core.component.KoinComponent
@@ -17,7 +20,7 @@ abstract class ProjectListUi : KoinComponent {
 	lateinit var nameTF: TextField
 
 	@FXML
-	lateinit var urlTF: TextField
+	lateinit var pathTF: TextField
 
 	@FXML
 	lateinit var analyseB: Button
@@ -33,15 +36,15 @@ class ProjectList : ProjectListUi() {
 	fun initialize() {
 		this.projectLV.items.setAll(this.projectRepo.data)
 		this.projectRepo.onData { this.projectLV.items.setAll(this.projectRepo.data) }
-		this.urlTF.setOnMouseClicked { this.findUrl() }
+		this.pathTF.setOnMouseClicked { this.choseDirectory() }
 		this.analyseB.setOnAction { this.analyse() }
 		this.projectLV.setOnMouseClicked { this.select(it) }
 	}
 
-	private fun findUrl() {
+	private fun choseDirectory() {
 		val chooser = DirectoryChooser()
 		val file: File = chooser.showDialog(null)
-		this.urlTF.text = file.absolutePath
+		this.pathTF.text = file.absolutePath
 	}
 
 	fun select(mouseEvent: MouseEvent) {
@@ -52,14 +55,15 @@ class ProjectList : ProjectListUi() {
 		var project: Project = this.projectLV.selectionModel.selectedItem ?: return
 		project = this.projectRepo.find(project) ?: project
 		this.nameTF.text = project.name
-		this.urlTF.text = project.url
+		this.pathTF.text = project.path
 	}
 
 	private fun analyse() = startThread {
 		val project = Project(
 			name = nameTF.text,
-			url = urlTF.text,
+			path = pathTF.text,
 		)
+		println(project)
 		projectRepo.save(project)
 		projectRepo.chose(project)
 	}
